@@ -2,12 +2,12 @@ package mongoclient
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go-crud-mongodb/models"
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,10 +20,12 @@ const (
 
 func getClient() *mongo.Client{
 	
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Print("Error loading .env file")
-	}
+
+	// uncomment to run with .env file
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	fmt.Print("Error loading .env file")
+	// }
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -149,8 +151,12 @@ func DeleteUser(id primitive.ObjectID) (*primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := collection.DeleteOne(ctx, bson.M{"_id": id})
-	fmt.Print(res)
+	deleteResult, err := collection.DeleteOne(ctx, bson.M{"_id": id})
+
+	if deleteResult.DeletedCount < 1{
+		return nil, errors.New("record not found")
+	}
+
 	if  err != nil {
         fmt.Println(err)
         return nil, err
