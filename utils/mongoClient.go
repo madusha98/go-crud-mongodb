@@ -131,16 +131,23 @@ func UpdateUser(id primitive.ObjectID, user models.User) (*primitive.ObjectID, e
 		updateObject["age"] = user.Age
 	}
 
-	res, err := collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{
+	updateResult, err := collection.UpdateOne(ctx, bson.M{"_id": id}, bson.M{
 		"$set": updateObject,
 	}, )
+
+	if updateResult.MatchedCount < 1{
+		return nil, errors.New("record not found")
+	}
+
+	if updateResult.ModifiedCount < 1{
+		return nil, errors.New("similar data exists in db")
+		
+	}
 
     if err != nil {
         fmt.Printf("Unable to execute the query. %v", err)
 		return nil, err
     }
-
-    fmt.Printf("Inserted a single record %v", res)
 
     return &id, nil
 }
